@@ -5,15 +5,13 @@ namespace Dsw2025Tpi.Data;
 
 public class Dsw2025TpiContext: DbContext
 {
-    /*Clase para vincular el entityFrameWork*/
-    /*Aca se usa la fluent api o el annotation*/
     public Dsw2025TpiContext(DbContextOptions<Dsw2025TpiContext> options) : base(options)  
     {
 
     }
-    public DbSet<Product> Products { get; set; } // Asumo que ya la tienes
-    public DbSet<Order> Orders { get; set; }     // <--- ¡Probablemente te falta esta!
-    public DbSet<OrderItem> OrderItems { get; set; } // 
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Order> Orders { get; set; }   
+    public DbSet<OrderItem> OrderItems { get; set; } 
     public DbSet<Customer> Customers { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,9 +30,7 @@ public class Dsw2025TpiContext: DbContext
             eb.HasMany(p => p.OrderItems)
               .WithOne(oi => oi.product)
               .HasForeignKey(oi => oi.productId);
-             // .OnDelete(DeleteBehavior.Cascade); /*Si se elimina el producto, se eliminan los items de la orden que lo contienen*/
-            /*El HasMaxLength se hace solo para strings*/
-            /*Hay que configurar las relaciones aca */
+             // .OnDelete(DeleteBehavior.Cascade); 
         });
 
         modelBuilder.Entity<Order>(eb =>
