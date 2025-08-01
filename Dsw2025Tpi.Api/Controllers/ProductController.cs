@@ -18,7 +18,7 @@ namespace Dsw2025Tpi.Api.Controllers
             _service = service;
         }
 
-        [HttpPost()] /*Endpoint 01 : Busca permitir crear un producto*/
+        [HttpPost()] 
         public async Task<IActionResult> AddProduct([FromBody] ProductModel.ProductRequest request)
         {
             var producto = await _service.AddProduct(request);
@@ -27,7 +27,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
 
 
-        [HttpGet] /*EndPoint 02 : Busca obtener todos los productos */
+        [HttpGet] 
         public async Task<IActionResult> GetProducts()
         {
             var products = await _service.GetProducts();
@@ -37,7 +37,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
 
-        [HttpGet("{id}")] /*EndPoint 03 : Busca obtener un producto por ID */
+        [HttpGet("{id}")] 
         [AllowAnonymous]
         public async Task<IActionResult> GetProductById(Guid id)
         {
@@ -48,7 +48,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
         }
 
-        [HttpPut("{id}")] /*EndPoint 04 : Busca actualizar un producto por ID */
+        [HttpPut("{id}")] 
         [AllowAnonymous]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductModel.ProductRequest request)
         {
@@ -57,15 +57,12 @@ namespace Dsw2025Tpi.Api.Controllers
                return Ok(product);
         }
 
-        [HttpPatch("{id}")] /*EndPoint 05: Inhabilitar un producto por ID*/
+        [HttpPatch("{id}")] 
         public async Task<IActionResult> DisableProduct(Guid id)
         {
                 var state = await _service.DisableProduct(id);
-                if (!state == true)
-                {
-                    return NotFound("El producto no existe o ya esta deshabilitado");
-                }
-                return NoContent();
+                return NotFound("El producto no existe o ya esta deshabilitado");
+                
          
         }
 

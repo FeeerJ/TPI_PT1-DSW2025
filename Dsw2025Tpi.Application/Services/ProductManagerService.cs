@@ -15,29 +15,29 @@ namespace Dsw2025Tpi.Application.Services
     {
         private readonly IRepository _repository;
 
-        public ProductManagerService(IRepository repository) /*Inyeccion de Dependencia*/
+        public ProductManagerService(IRepository repository)
         {
             _repository = repository;
 
         }
 
 
-        /*LOGICA PARA OBTENER TODOS LOS PRODUCTOS*/
-        public async Task<IEnumerable<Product>?> GetProducts() /*Funcion asincronica que nos permite obtener todos los productos cargados en la bd*/ /*Buscar diferencia entre Enumerable e IEnumerable*/
+     
+        public async Task<IEnumerable<Product>?> GetProducts() 
         {
-            return await _repository.GetAll<Product>(); /*Llamamos al repositorio y le decimos que queremos todos los productos de tipo Product*/
+            return await _repository.GetAll<Product>(); 
         }
 
-        /*LOGICA PARA AGREGAR UN PRODUCTO*/
-        public async Task<ProductModel.ProductResponse> AddProduct(ProductModel.ProductRequest request) /*Devuelve una respuesta del Modelo Producto*/
+        
+        public async Task<ProductModel.ProductResponse> AddProduct(ProductModel.ProductRequest request) 
         {
             if (string.IsNullOrWhiteSpace(request.sku) || string.IsNullOrWhiteSpace(request.name) || request.currentUnitPrice < 0)  throw new ArgumentException("Los valores ingresados son invalidos.");
           
-            var existe = await _repository.First<Product>(p => p.Sku == request.sku); /*Si encuentra una coincidencia respecto al sku perteneciente al producto buscado, se le asigna el obj producto al var*/
+            var existe = await _repository.First<Product>(p => p.Sku == request.sku);
             if (existe != null) throw new DuplicatedEntityException($"Ya existe un producto con el sku {request.sku}");
             
 
-            var product = new Product(request.sku, request.name, request.currentUnitPrice, request.internalCode, request.description, request.stockQuantity, request.isActive);  /*Deberia estar en las primeras lineas para que tenga mas sentido visualcreo*/
+            var product = new Product(request.sku, request.name, request.currentUnitPrice, request.internalCode, request.description, request.stockQuantity, request.isActive); 
             await _repository.Add(product);
             return new ProductModel.ProductResponse(product.Id, product.Sku, product.Name, product.CurrentUnitPrice, product.InternalCode, product.Description, product.StockQuantity, product.IsActive);
         }
@@ -75,28 +75,27 @@ namespace Dsw2025Tpi.Application.Services
         }
 
 
-        /* LOGICA PARA DESHABILITAR UN PRODUCTO POR ID*/
+    
         public async Task<bool> DisableProduct(Guid id) 
         {
-            var product = await _repository.GetById<Product>(id);  /*Comprueba la existencia del producto que posea la ID que se le envio y la almacena en la variable*/
+            var product = await _repository.GetById<Product>(id);
             if (product == null) throw new NotFoundException($"Producto con ID:{id} no encontrado.");
             if (!product.IsActive) throw new InvalidOperationException($"El producto con ID: {id} ya se encuentra deshabilitado.");
 
-            product.IsActive = false; /*Si el producto existe, se le cambia el estado a false, es decir que se deshabilita*/
-            await _repository.Update(product); /*Se actualiza el producto en la base de datos*/
+            product.IsActive = false;
+            await _repository.Update(product); 
             return true;
 
         }
 
-        /* LOGICA PARA CONSEGUIR UN PRODUCTO POR SU ID*/
-        public async Task<ProductModel.ProductResponseUpdate?> GetProductID(Guid id) /*Si existe va a retornar una respuesta de tipo producto, es decir todos sus datos*/
+      
+        public async Task<ProductModel.ProductResponseUpdate?> GetProductID(Guid id)
         {
             var product = await _repository.First<Product>(p => p.Id == id && p.IsActive == true);
-            if (product == null) throw new NotFoundException($"Producto con ID:{id} no encontrado."); /*MEJORAR ESTO*/
+            if (product == null) throw new NotFoundException($"Producto con ID:{id} no encontrado.");
             return new ProductModel.ProductResponseUpdate(
-                product.Id, product.Sku, product.Name, product.CurrentUnitPrice, product.InternalCode, product.Description, product.StockQuantity, product.IsActive
-                 /*Ver si podemos crear una forma mas limpia de devolver esto*/
-                );
+                product.Id, product.Sku, product.Name, product.CurrentUnitPrice, product.InternalCode, product.Description, product.StockQuantity, product.IsActive 
+             );
         }
 
     }

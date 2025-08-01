@@ -21,8 +21,6 @@ namespace Dsw2025Tpi.Api.Controllers
             _service = service;
         }
 
-        /*ENDPOINT 06 CREAR UNA NUEVA ORDEN*/
-     
         [HttpPost()]
         [AllowAnonymous]
         public async Task<IActionResult> AddOrder([FromBody] OrderModel.OrderRequest request)
@@ -31,8 +29,6 @@ namespace Dsw2025Tpi.Api.Controllers
                 return Created($"/api/orders/{orden.Id}", orden);
 
         }
-
-        /*ENDPOINT 07 OBTENER TODAS LAS ORDENES*/
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetOrders([FromQuery] OrderModel.OrderFilter filter)
@@ -44,7 +40,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
 
         [AllowAnonymous]
-        [HttpGet("{id}")] /*EndPoint 08 : Busca obtener un producto por ID */
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderId(Guid id)
         {
           

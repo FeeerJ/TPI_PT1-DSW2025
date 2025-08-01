@@ -20,36 +20,6 @@ namespace Dsw2025Tpi.Application.Services
             _repository = repository;
         }
 
-        /*
-        public async Task<IEnumerable<OrderModel.OrderResponse>?> GetOrders()
-        {
-            var orderList = await _repository.GetAll<Order>(include: "orderItems");
-            if (orderList == null || !orderList.Any()) return new List<OrderModel.OrderResponse>();
-            
-            var orders = orderList.Select(order =>
-            {
-                return new OrderModel.OrderResponse(
-                    Id: order.Id,
-                    customerId: order.customerId,
-                    shippingAddress: order.shippingAddress,
-                    billingAddress: order.billingAddress,
-                    notes: order.notes,
-                    date: order.date,
-                    totalAmount: order.totalAmount,
-                  
-                    OrderItems: order.orderItems?
-                                    .Select(item => new OrderModel.OrderItemResponse(
-                                        productId: item.productId,
-                                        unitPrice: item.unitPrice,    
-                                        quantity: item.quantity,     
-                                        subTotal: item.subTotal     
-                                    )).ToList() ?? new List<OrderModel.OrderItemResponse>(), 
-                    status: order.status.ToString()
-                );
-            }).ToList(); 
-
-            return orders;
-        }*/
         public async Task<IEnumerable<OrderModel.OrderResponse>?> GetOrders(OrderModel.OrderFilter filter)
         {
             var orderList = await _repository.GetAll<Order>(include: "orderItems");

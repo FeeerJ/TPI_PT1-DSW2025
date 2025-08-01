@@ -58,7 +58,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 throw new ArgumentException("Los campos no pueden estar vacios.");
             }
-            if (!ValidarEmanil(request.Email))
+            if (!ValidateEmail(request.Email))
             {
                 throw new ArgumentException("El mail ingresado no es valido.");
             }
@@ -71,12 +71,11 @@ namespace Dsw2025Tpi.Application.Services
                 throw new ArgumentException("El correo electronico ya esta en uso.");
             }
             var user = new IdentityUser { UserName = request.Username, Email = request.Email };
-            var result = await _userManager.CreateAsync(user, request.Password); /*Guarda el usuario en la base*/
+            var result = await _userManager.CreateAsync(user, request.Password); 
             if (!result.Succeeded)
             {
                 throw new ArgumentException("Argumentos invalidos o incompletos");
             }
-            /*Hacer un servicio que haga validacion de que los datos existan, validan el mail, etc*/
             return new RegisterResponse(user.UserName, user.Email);
         }
 
@@ -95,12 +94,12 @@ namespace Dsw2025Tpi.Application.Services
             if (!result.Succeeded)
             {
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos.");
-            } /*No buscamos las dos cosas en una sola porque la contraseña no se guarda de forma plana, sino encriptada. Encripta la contraseña que colocamos y la compara en la bd*/
+            }
             var token = GenerateToken(request.Username);
             return new LoginResponse(user.UserName, token);
         }
 
-        public bool ValidarEmanil(string email)
+        public bool ValidateEmail(string email)
         {
             var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
