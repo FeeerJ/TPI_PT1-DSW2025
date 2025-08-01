@@ -19,29 +19,15 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpPost()] /*Endpoint 01 : Busca permitir crear un producto*/
-        public async Task<IActionResult> AgregarProducto([FromBody] ProductModel.ProductRequest request)
+        public async Task<IActionResult> AddProduct([FromBody] ProductModel.ProductRequest request)
         {
-            try
-            {
-                var producto = await _service.AgregarProducto(request);
-                return Ok(producto);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            catch (DuplicatedEntityException e)
-            {
-                return Conflict(e.Message);
-            }
-            catch (Exception e)
-            {
-                return Problem("Se produjo un error al guardar el producto");
-            }
+            var producto = await _service.AddProduct(request);
+            return Created($"/api/productos/{producto.id}", producto);
         }
 
+
+
         [HttpGet] /*EndPoint 02 : Busca obtener todos los productos */
-        [AllowAnonymous]
         public async Task<IActionResult> GetProducts()
         {
             var products = await _service.GetProducts();
@@ -52,33 +38,36 @@ namespace Dsw2025Tpi.Api.Controllers
 
 
         [HttpGet("{id}")] /*EndPoint 03 : Busca obtener un producto por ID */
+        [AllowAnonymous]
         public async Task<IActionResult> GetProductById(Guid id)
         {
             var product = await _service.GetProductID(id);
-            if (product == null) return NoContent();
+            if (product == null) return NotFound();
             return Ok(product);
 
 
         }
 
-        [HttpPut] /*EndPoint 04 : Busca actualizar un producto por ID */
-        public async Task<IActionResult> ModificarProducto([FromRoute]Guid id, [FromBody] ProductModel.ProductRequest request)
+        [HttpPut("{id}")] /*EndPoint 04 : Busca actualizar un producto por ID */
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductModel.ProductRequest request)
         {
-            await _service.ModificarProducto(request, id);
-            return NoContent();
-
-
-
+          
+              var product = await _service.UpdateProduct(request, id);
+               return Ok(product);
         }
 
-        [HttpPatch] /*EndPoint 05: Inhabilitar un producto por ID*/
-        public async Task<IActionResult> InhabilitarProducto(Guid id)
+        [HttpPatch("{id}")] /*EndPoint 05: Inhabilitar un producto por ID*/
+        public async Task<IActionResult> DisableProduct(Guid id)
         {
-            await _service.DeshabilitarProducto(id);
-            return NoContent();
-
+                var state = await _service.DisableProduct(id);
+                if (!state == true)
+                {
+                    return NotFound("El producto no existe o ya esta deshabilitado");
+                }
+                return NoContent();
+         
         }
-
 
     }
- }
+}

@@ -34,6 +34,7 @@ namespace Dsw2025Tpi.Application.Dtos
             List<OrderItemModel> orderItems
             );
 
+        public record OrderStatusResponse(string newStatus);
         public record OrderResponse(
             Guid Id,
             Guid customerId,

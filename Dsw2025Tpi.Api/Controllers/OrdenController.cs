@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Dsw2025Tpi.Api.Controllers
 {
-    [Authorize]
+    [Authorize] 
     [ApiController]
     [Route("/api/orders")]
     public class OrdenController : ControllerBase
@@ -20,53 +20,46 @@ namespace Dsw2025Tpi.Api.Controllers
             _service = service;
         }
 
+        /*ENDPOINT 06 CREAR UNA NUEVA ORDEN*/
+     
+        [HttpPost()]
+        [AllowAnonymous]
+        public async Task<IActionResult> AddOrder([FromBody] OrderModel.OrderRequest request)
+        {
+                var orden = await _service.AddOrder(request);
+                return Created($"/api/orders/{orden.Id}", orden);
+
+        }
+
+        /*ENDPOINT 07 OBTENER TODAS LAS ORDENES*/
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetOrders()
         {
-            var orders = await _service.GetOrders();
-            if (orders == null || !orders.Any()) return NoContent();
-
-            return Ok(orders);
-        }
-
-        [HttpPost()]
-        public async Task<IActionResult> AgregarOrden([FromBody] OrderModel.OrderRequest request)
-        {
-            try
-            {
-                var orden = await _service.AgregarOrden(request);
-                return Ok(orden);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            catch (DuplicatedEntityException e)
-            {
-                return Conflict(e.Message);
-            }
-            catch (Exception e)
-            {
-                return Problem("Se produjo un error al guardar la orden");
-            }
+                var orders = await _service.GetOrders();
+                return Ok(orders);
 
         }
 
-        [HttpGet("{id}")] /*EndPoint 03 : Busca obtener un producto por ID */
+
+        [AllowAnonymous]
+        [HttpGet("{id}")] /*EndPoint 08 : Busca obtener un producto por ID */
         public async Task<IActionResult> GetOrderId(Guid id)
         {
-            var order = await _service.GetOrderById(id);
-            if (order == null) return NoContent();
-            return Ok(order);
+          
+                var order = await _service.GetOrderById(id);
+                if (order == null) return NotFound();
+                return Ok(order);
 
         }
-
-        [HttpPut]
-        public async Task<IActionResult> ModificarEstado(Guid id, int codigo)
+        [AllowAnonymous]
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(Guid id, int codigo)
         {
-            var order = await _service.ModificarEstado(id, codigo);
-            if (order == null) return NoContent();
-            return Ok(order);
+                var order = await _service.UpdateOrderStatus(id, codigo);
+                if (order == null) return NotFound();
+                return Ok(order);
+         
         }
     }
 }

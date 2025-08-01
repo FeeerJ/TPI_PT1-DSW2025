@@ -22,48 +22,37 @@ namespace Dsw2025Tpi.Application.Services
 
         public async Task<IEnumerable<OrderModel.OrderResponse>?> GetOrders()
         {
-            // 1. Obtener todas las órdenes del repositorio, incluyendo sus ítems.
-            // Asegúrate que "Items" es el nombre de la propiedad de navegación ICollection<OrderItem> en tu entidad Order.
-            var listaOrdenes = await _repository.GetAll<Order>(include: "orderItems");
-
-            // 2. Manejo de caso sin órdenes: Devolver una lista vacía de DTOs, no lanzar excepción.
-            // Esto es estándar RESTful para GET de colecciones sin resultados.
-            if (listaOrdenes == null || !listaOrdenes.Any())
-            {
-                return new List<OrderModel.OrderResponse>(); // Devuelve una lista vacía de DTOs
-            }
-
-            // 3. Mapear cada entidad Order a su DTO OrderModel.OrderResponse
-            var listaRespuesta = listaOrdenes.Select(order =>
+            var orderList = await _repository.GetAll<Order>(include: "orderItems");
+            if (orderList == null || !orderList.Any()) return new List<OrderModel.OrderResponse>();
+            
+            var orders = orderList.Select(order =>
             {
                 return new OrderModel.OrderResponse(
                     Id: order.Id,
-                    customerId: order.customerId, // Asumo que en la entidad es Order.CustomerId (PascalCase)
+                    customerId: order.customerId,
                     shippingAddress: order.shippingAddress,
                     billingAddress: order.billingAddress,
                     notes: order.notes,
                     date: order.date,
                     totalAmount: order.totalAmount,
-                    // 4. Mapear la colección anidada de OrderItems a OrderModel.OrderItemResponse
-                    OrderItems: order.orderItems? // Propiedad de navegación de la entidad Order
+                  
+                    OrderItems: order.orderItems?
                                     .Select(item => new OrderModel.OrderItemResponse(
                                         productId: item.productId,
-                                        unitPrice: item.unitPrice,    // Propiedad de la entidad OrderItem
-                                        quantity: item.quantity,      // Propiedad de la entidad OrderItem
-                                        subTotal: item.subTotal       // Propiedad de la entidad OrderItem
-                                    ))
-                                    .ToList() // Convertir a List<OrderModel.OrderItemResponse>
-                                    ?? new List<OrderModel.OrderItemResponse>(), // Si Items es null, devolver lista vacía
-                    status: order.status.ToString() // Convertir el enum a string para el DTO
+                                        unitPrice: item.unitPrice,    
+                                        quantity: item.quantity,     
+                                        subTotal: item.subTotal     
+                                    )).ToList() ?? new List<OrderModel.OrderItemResponse>(), 
+                    status: order.status.ToString()
                 );
-            }).ToList(); // Convertir el resultado del Select a una List<OrderModel.OrderResponse>
+            }).ToList(); 
 
-            return listaRespuesta;
+            return orders;
         }
 
 
         
-        public async Task<OrderModel.OrderResponse> AgregarOrden(OrderModel.OrderRequest request)
+        public async Task<OrderModel.OrderResponse> AddOrder(OrderModel.OrderRequest request)
         {
             if (request == null ||
                 request.CustomerId == Guid.Empty ||
@@ -72,13 +61,12 @@ namespace Dsw2025Tpi.Application.Services
                 request.orderItems == null ||
                 !request.orderItems.Any())
             {
-                throw new ArgumentException("Argumentos invalidos o incompletos");
+                throw new ArgumentException("Argumentos invalidos.");
             }
             var customer = await _repository.GetById<Customer>(request.CustomerId);
             if (customer == null)
             {
-                throw new ArgumentException($"Cliente con ID {request.CustomerId} no encontrado");
-
+                throw new ArgumentException($"Cliente con ID {request.CustomerId} no encontrado.");
 
             }
             var orderItems = new List<OrderItem>();
@@ -88,11 +76,11 @@ namespace Dsw2025Tpi.Application.Services
                 var product = await _repository.GetById<Product>(itemRequest.ProductId);
                 if (product == null || !product.IsActive)
                 {
-                    throw new ArgumentException($"Producto con ID {product.Id} does not exist");
+                    throw new ArgumentException($"Producto con ID {product.Id} no encontrado.");
                 }
                 if (product.StockQuantity < itemRequest.quantity)
                 {
-                    throw new ArgumentException($"Stock insuficiente para el producto {product.Name}");
+                    throw new ArgumentException($"Stock insuficiente para el producto {product.Name}.");
                 }
                 var subTotal = itemRequest.quantity * product.CurrentUnitPrice;
                 totalAmount += subTotal;
@@ -144,12 +132,8 @@ namespace Dsw2025Tpi.Application.Services
             // "Items" debe ser el nombre de la propiedad de navegación ICollection<OrderItem> en tu entidad Order.
             var order = await _repository.First<Order>(o => o.Id == id, include: "orderItems");
 
-            if (order == null)
-            {
-                // Si la orden no se encuentra, lanzar una excepción específica
-                // Esto permite que el controlador (API) devuelva un 404 Not Found.
-                throw new ArgumentException($"Orden con ID {id} no encontrada.");
-            }
+            if (order == null) throw new NotFoundException($"Orden con ID {id} no encontrada.");
+    
 
             // Mapear la entidad 'Order' a tu DTO 'OrderModel.OrderResponse'
             var orderResponse = new OrderModel.OrderResponse(
@@ -178,7 +162,7 @@ namespace Dsw2025Tpi.Application.Services
             return orderResponse;
         }
 
-        public async Task<OrderModel.OrderResponse?> ModificarEstado(Guid id, int codigoEstado)
+        public async Task<OrderModel.OrderStatusResponse?> UpdateOrderStatus(Guid id, int codigoEstado)
         {
             // 1. Validar el código de estado: Asegurarse de que es un valor válido para el enum OrderStatus.
             if (!Enum.IsDefined(typeof(OrderStatus), codigoEstado))
@@ -192,11 +176,7 @@ namespace Dsw2025Tpi.Application.Services
             // 2. Buscar la orden existente en el repositorio.
             var order = await _repository.First<Order>(o => o.Id == id, include: "orderItems");
 
-            if (order == null)
-            {
-                // Si la orden no se encuentra, lanzar NotFoundException.
-                throw new ArgumentException($"Orden con ID {id} no encontrada para actualizar su estado.");
-            }
+            if (order == null) throw new NotFoundException($"Orden con ID {id} no encontrada.");
 
             // 3. Actualizar el estado de la orden.
             // La especificación dice "solo modificar el estado", así que esto es lo único que cambiamos.
@@ -208,26 +188,25 @@ namespace Dsw2025Tpi.Application.Services
 
             // 5. Devolver un DTO de respuesta para la orden actualizada.
             // Puedes devolver el DTO completo de la orden actualizada.
-            var orderResponse = new OrderModel.OrderResponse(
-                Id: order.Id,
+            var orderResponse = new OrderModel.OrderStatusResponse(
+               /*Id: order.Id,
                 customerId: order.customerId,
                 shippingAddress: order.shippingAddress,
                 billingAddress: order.billingAddress,
                 notes: order.notes,
                 date: order.date,
                 totalAmount: order.totalAmount,
-                // Mapear los OrderItems si los quieres en la respuesta, similar a GetOrderById
+               
                 OrderItems: order.orderItems?
                                 .Select(item => new OrderModel.OrderItemResponse(
                                     productId: item.productId,
                                     unitPrice: item.unitPrice,
                                     quantity: item.quantity,
                                     subTotal: item.subTotal
-                                    //productName: item.product?.Name ?? "N/A", // Si Product se carga
-                                    // productDescription: item.product?.Description ?? "N/A" // Si Product se carga
+                                 
                                 ))
-                                .ToList() ?? new List<OrderModel.OrderItemResponse>(),
-                status: order.status.ToString() // Devuelve el estado como string
+                                .ToList() ?? new List<OrderModel.OrderItemResponse>(),*/
+                newStatus: order.status.ToString() // Devuelve el estado como string
             );
 
             return orderResponse;
