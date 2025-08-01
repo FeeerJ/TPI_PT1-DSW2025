@@ -54,34 +54,25 @@ namespace Dsw2025Tpi.Application.Services
         
         public async Task<OrderModel.OrderResponse> AddOrder(OrderModel.OrderRequest request)
         {
-            if (request == null ||
-                request.CustomerId == Guid.Empty ||
-                string.IsNullOrWhiteSpace(request.shippingAddress) ||
-                string.IsNullOrWhiteSpace(request.billingAddress) ||
-                request.orderItems == null ||
-                !request.orderItems.Any())
-            {
-                throw new ArgumentException("Argumentos invalidos.");
-            }
-            var customer = await _repository.GetById<Customer>(request.CustomerId);
-            if (customer == null)
-            {
-                throw new ArgumentException($"Cliente con ID {request.CustomerId} no encontrado.");
+            if (
+                 request == null || request.CustomerId == Guid.Empty ||
+                 string.IsNullOrWhiteSpace(request.shippingAddress)  ||
+                 string.IsNullOrWhiteSpace(request.billingAddress)   ||
+                 request.orderItems == null || !request.orderItems.Any()
+               ) throw new ArgumentException("Argumentos invalidos.");
+            
 
-            }
+            var customer = await _repository.GetById<Customer>(request.CustomerId);
+            if (customer == null) throw new NotFoundException($"Cliente con ID {request.CustomerId} no encontrado.");
+
             var orderItems = new List<OrderItem>();
             decimal totalAmount = 0;
             foreach (var itemRequest in request.orderItems)
             {
                 var product = await _repository.GetById<Product>(itemRequest.ProductId);
-                if (product == null || !product.IsActive)
-                {
-                    throw new ArgumentException($"Producto con ID {product.Id} no encontrado.");
-                }
-                if (product.StockQuantity < itemRequest.quantity)
-                {
-                    throw new ArgumentException($"Stock insuficiente para el producto {product.Name}.");
-                }
+                if (product == null || !product.IsActive) throw new NotFoundException($"Producto con ID {product.Id} no encontrado.");
+                if (product.StockQuantity < itemRequest.quantity) throw new ArgumentException($"Stock insuficiente para el producto {product.Name}.");
+                
                 var subTotal = itemRequest.quantity * product.CurrentUnitPrice;
                 totalAmount += subTotal;
 
@@ -103,25 +94,9 @@ namespace Dsw2025Tpi.Application.Services
             order.orderItems = orderItems;
             await _repository.Add(order);
 
-            var responseItems = order.orderItems.Select(oi => new OrderModel.OrderItemResponse(
-               oi.productId,
-               oi.unitPrice,
-               oi.quantity,
-               oi.subTotal
+            var responseItems = order.orderItems.Select(oi => new OrderModel.OrderItemResponse( oi.productId, oi.unitPrice,oi.quantity,oi.subTotal)).ToList();
 
-             )).ToList();
-
-            return new OrderModel.OrderResponse(
-               order.Id,
-               order.customerId,
-               order.shippingAddress,
-               order.billingAddress,
-               order.notes,
-               order.date,
-               order.totalAmount,
-               responseItems,
-               order.status.ToString()
-           );
+            return new OrderModel.OrderResponse(order.Id,order.customerId,order.shippingAddress,order.billingAddress, order.notes,order.date,order.totalAmount,responseItems,order.status.ToString());
 
         }
 
@@ -165,49 +140,15 @@ namespace Dsw2025Tpi.Application.Services
         public async Task<OrderModel.OrderStatusResponse?> UpdateOrderStatus(Guid id, int codigoEstado)
         {
             // 1. Validar el código de estado: Asegurarse de que es un valor válido para el enum OrderStatus.
-            if (!Enum.IsDefined(typeof(OrderStatus), codigoEstado))
-            {
-                throw new ArgumentException($"El código de estado '{codigoEstado}' no es un valor válido para OrderStatus.");
-            }
-
-            // Convertir el código numérico al tipo enum OrderStatus.
+            if (!Enum.IsDefined(typeof(OrderStatus), codigoEstado)) throw new ArgumentException($"El código de estado '{codigoEstado}' no es un valor válido para OrderStatus.");
             var nuevoEstado = (OrderStatus)codigoEstado;
-
-            // 2. Buscar la orden existente en el repositorio.
             var order = await _repository.First<Order>(o => o.Id == id, include: "orderItems");
 
             if (order == null) throw new NotFoundException($"Orden con ID {id} no encontrada.");
-
-            // 3. Actualizar el estado de la orden.
-            // La especificación dice "solo modificar el estado", así que esto es lo único que cambiamos.
             order.status = nuevoEstado;
 
-            // 4. Guardar los cambios a través del repositorio.
-            // Tu _repository.Modificar() debería manejar la persistencia de esta entidad actualizada.
             await _repository.Update(order);
-
-            // 5. Devolver un DTO de respuesta para la orden actualizada.
-            // Puedes devolver el DTO completo de la orden actualizada.
-            var orderResponse = new OrderModel.OrderStatusResponse(
-               /*Id: order.Id,
-                customerId: order.customerId,
-                shippingAddress: order.shippingAddress,
-                billingAddress: order.billingAddress,
-                notes: order.notes,
-                date: order.date,
-                totalAmount: order.totalAmount,
-               
-                OrderItems: order.orderItems?
-                                .Select(item => new OrderModel.OrderItemResponse(
-                                    productId: item.productId,
-                                    unitPrice: item.unitPrice,
-                                    quantity: item.quantity,
-                                    subTotal: item.subTotal
-                                 
-                                ))
-                                .ToList() ?? new List<OrderModel.OrderItemResponse>(),*/
-                newStatus: order.status.ToString() // Devuelve el estado como string
-            );
+             var orderResponse = new OrderModel.OrderStatusResponse( newStatus: order.status.ToString());
 
             return orderResponse;
         }
