@@ -4,6 +4,7 @@ using Dsw2025Tpi.Application.Services;
 using Dsw2025Tpi.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Dsw2025Tpi.Api.Controllers
@@ -34,9 +35,9 @@ namespace Dsw2025Tpi.Api.Controllers
         /*ENDPOINT 07 OBTENER TODAS LAS ORDENES*/
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetOrders()
+        public async Task<IActionResult> GetOrders([FromQuery] OrderModel.OrderFilter filter)
         {
-                var orders = await _service.GetOrders();
+                var orders = await _service.GetOrders(filter);
                 return Ok(orders);
 
         }

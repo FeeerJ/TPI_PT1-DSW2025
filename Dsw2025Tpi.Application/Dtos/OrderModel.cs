@@ -34,6 +34,7 @@ namespace Dsw2025Tpi.Application.Dtos
             List<OrderItemModel> orderItems
             );
 
+        public record OrderFilter(string? status =null, Guid? customerId=null, int pageNumer=1, int pageSize=10);
         public record OrderStatusResponse(string newStatus);
         public record OrderResponse(
             Guid Id,
