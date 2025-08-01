@@ -23,7 +23,7 @@ namespace Dsw2025Tpi.Application.Dtos
         public record OrderFilter(string? status =null, Guid? customerId=null, int pageNumer=1, int pageSize=10);
         public record OrderStatusResponse(string newStatus);
         public record OrderResponse(Guid Id,Guid customerId,string shippingAddress,string billingAddress, string notes,DateTime date,
-            decimal totalAmount,List<OrderItemResponse> OrderItems,string status)
+            decimal totalAmount,List<OrderItemResponse> OrderItems,string status);
 
     }
 }
