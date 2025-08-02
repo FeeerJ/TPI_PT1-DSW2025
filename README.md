@@ -24,6 +24,9 @@ En esta primera etapa el objetivo es construir el módulo de Órdenes, permitien
 ### Pasos a seguir
 1. Clonar el repositorio:
    Tendras que usar la siguiente serie de comandos en tu terminal.
+   ```bash
+   dotnet ef migrations add InitialCreate
+   dotnet ef database update
 2. Configurar la base de datos: 
    Ten en cuenta que la cadena de conexion utilizada sea la correcta segun tu entorno preferido. La utilizada por defecto es (localdb)\\mssqllocaldb
 3. Aplicar las migraciones y poblar la base de datos:
