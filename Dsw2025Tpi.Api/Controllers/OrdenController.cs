@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Dsw2025Tpi.Api.Controllers
 {
-    [Authorize] 
+    [Authorize]
     [ApiController]
     [Route("/api/orders")]
     public class OrdenController : ControllerBase
@@ -22,7 +22,7 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
         [HttpPost()]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin, User")] /*Podria hacerlo el usuario, con la condicion de que sea solo sus ordenes*/
         public async Task<IActionResult> AddOrder([FromBody] OrderModel.OrderRequest request)
         {
                 var orden = await _service.AddOrder(request);
@@ -30,7 +30,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
         }
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin, User")] /*Podria hacerlo el usuario, con la condicion de que sea solo sus ordenes*/
         public async Task<IActionResult> GetOrders([FromQuery] OrderModel.OrderFilter filter)
         {
                 var orders = await _service.GetOrders(filter);
@@ -39,8 +39,9 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
 
-        [AllowAnonymous]
+    
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetOrderId(Guid id)
         {
           
@@ -49,8 +50,9 @@ namespace Dsw2025Tpi.Api.Controllers
                 return Ok(order);
 
         }
-        [AllowAnonymous]
+    
         [HttpPut("{id}/status")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateOrderStatus(Guid id, int codigo)
         {
                 var order = await _service.UpdateOrderStatus(id, codigo);

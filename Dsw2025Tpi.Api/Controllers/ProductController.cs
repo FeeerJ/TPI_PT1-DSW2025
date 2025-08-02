@@ -18,7 +18,8 @@ namespace Dsw2025Tpi.Api.Controllers
             _service = service;
         }
 
-        [HttpPost()] 
+        [HttpPost()]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddProduct([FromBody] ProductModel.ProductRequest request)
         {
             var producto = await _service.AddProduct(request);
@@ -26,8 +27,8 @@ namespace Dsw2025Tpi.Api.Controllers
         }
 
 
-
-        [HttpGet] 
+        [HttpGet]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetProducts()
         {
             var products = await _service.GetProducts();
@@ -38,7 +39,7 @@ namespace Dsw2025Tpi.Api.Controllers
 
 
         [HttpGet("{id}")] 
-        [AllowAnonymous]
+         [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> GetProductById(Guid id)
         {
             var product = await _service.GetProductID(id);
@@ -48,8 +49,8 @@ namespace Dsw2025Tpi.Api.Controllers
 
         }
 
-        [HttpPut("{id}")] 
-        [AllowAnonymous]
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductModel.ProductRequest request)
         {
           
@@ -57,11 +58,12 @@ namespace Dsw2025Tpi.Api.Controllers
                return Ok(product);
         }
 
-        [HttpPatch("{id}")] 
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DisableProduct(Guid id)
         {
-                var state = await _service.DisableProduct(id);
-                return NotFound("El producto no existe o ya esta deshabilitado");
+                await _service.DisableProduct(id);
+                return NoContent();
                 
          
         }

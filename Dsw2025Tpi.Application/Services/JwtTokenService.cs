@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Expressions;
@@ -28,7 +29,7 @@ namespace Dsw2025Tpi.Application.Services
             _userManager = userManager;
             _signInManager = signInManager;
         }
-        public string GenerateToken(string username)
+        public string GenerateToken(string username, string role)
         {
             var jwtConfig = _config.GetSection("Jwt");
             var keyText = jwtConfig["Key"] ?? throw new ArgumentNullException("Jwt Key");
@@ -39,9 +40,11 @@ namespace Dsw2025Tpi.Application.Services
             {
                new Claim(JwtRegisteredClaimNames.Sub,username),
                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), /*Se podrian agregar mas claims*/
+               new Claim(ClaimTypes.Role, role) // Ejemplo de claim personalizado
               
             };
 
+         
             var token = new JwtSecurityToken(
                 issuer: jwtConfig["Issuer"],
                 audience: jwtConfig["Audience"],
@@ -76,6 +79,7 @@ namespace Dsw2025Tpi.Application.Services
             {
                 throw new ArgumentException("Argumentos invalidos o incompletos");
             }
+            await _userManager.AddToRoleAsync(user, "User"); // Asignar rol por defecto
             return new RegisterResponse(user.UserName, user.Email);
         }
 
@@ -87,15 +91,13 @@ namespace Dsw2025Tpi.Application.Services
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos.");
             }
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-            if (result.IsLockedOut)
-            {
-                throw new UnauthorizedAccessException("Usuario bloqueado temporalmente por intentos fallidos.");
-            }
-            if (!result.Succeeded)
-            {
-                throw new UnauthorizedAccessException("Usuario o contraseña incorrectos.");
-            }
-            var token = GenerateToken(request.Username);
+            if (result.IsLockedOut) throw new UnauthorizedAccessException("Usuario bloqueado temporalmente por intentos fallidos.");
+            
+            if (!result.Succeeded) throw new UnauthorizedAccessException("Usuario o contraseña incorrectos.");
+            
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var role = userRoles.FirstOrDefault() ?? "User"; 
+            var token = GenerateToken(request.Username, role);
             return new LoginResponse(user.UserName, token);
         }
 

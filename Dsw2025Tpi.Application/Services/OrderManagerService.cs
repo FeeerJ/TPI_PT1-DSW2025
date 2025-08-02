@@ -41,7 +41,7 @@ namespace Dsw2025Tpi.Application.Services
             var orders = orderList.Select(order =>
             {
                 return new OrderModel.OrderResponse(
-                    Id: order.Id,
+                   Id: order.Id,
                     customerId: order.customerId,
                     shippingAddress: order.shippingAddress,
                     billingAddress: order.billingAddress,

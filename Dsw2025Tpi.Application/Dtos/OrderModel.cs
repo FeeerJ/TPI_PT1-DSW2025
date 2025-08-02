@@ -10,7 +10,7 @@ namespace Dsw2025Tpi.Application.Dtos
     public record OrderModel
     {
         public record OrderItemModel(
-            [property: JsonPropertyName("productoId")] Guid ProductId,int quantity,string name,string description, decimal currentUnitPrice
+            [property: JsonPropertyName("productoId")] Guid ProductId,int quantity
         ); 
 
         public record OrderItemResponse( Guid productId,decimal unitPrice, int quantity,decimal subTotal);

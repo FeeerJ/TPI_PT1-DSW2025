@@ -23,9 +23,23 @@ namespace Dsw2025Tpi.Application.Services
 
 
      
-        public async Task<IEnumerable<Product>?> GetProducts() 
+        public async Task<IEnumerable<ProductModel.ProductResponse>?> GetProducts() 
         {
-            return await _repository.GetAll<Product>(); 
+            var productList = await _repository.GetAll<Product>();
+            if(productList == null || !productList.Any()) throw new NotFoundException("No hay productos registrados.");
+
+            var products = productList.Select(product => new ProductModel.ProductResponse(
+                    id: product.Id,
+                    sku: product.Sku,
+                    name: product.Name,
+                    currentUnitPrice: product.CurrentUnitPrice,
+                    internalCode: product.InternalCode,
+                    description: product.Description,
+                    stockQuantity: product.StockQuantity,
+                    isActive: product.IsActive
+                )).ToList();
+
+            return products;
         }
 
         
@@ -76,7 +90,7 @@ namespace Dsw2025Tpi.Application.Services
 
 
     
-        public async Task<bool> DisableProduct(Guid id) 
+        public async Task DisableProduct(Guid id) 
         {
             var product = await _repository.GetById<Product>(id);
             if (product == null) throw new NotFoundException($"Producto con ID:{id} no encontrado.");
@@ -84,7 +98,6 @@ namespace Dsw2025Tpi.Application.Services
 
             product.IsActive = false;
             await _repository.Update(product); 
-            return true;
 
         }
 

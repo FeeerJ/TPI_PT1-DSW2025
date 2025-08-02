@@ -13,12 +13,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Validations;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Dsw2025Tpi.Api;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -29,20 +30,20 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddDbContext<Dsw2025TpiContext>(options =>
         {
-            options.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Dsw2025db;Integrated Security=True;"); //
+            options.UseSqlServer(builder.Configuration.GetConnectionString("Dsw2025TpiEntities")); //
         });
         builder.Services.AddSwaggerGen(o => /*CONFIGURACION Y REQUISITOS DE SEGURIDAD PARA QUE EL SWAGGER ADMITA LA AUTENTICACION*/
         {
             o.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Desarrollo de Software",
+                Title = "TPI PT1- DSW2025",
                 Version = "v1",
             });
             o.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
                 In = Microsoft.OpenApi.Models.ParameterLocation.Header,
                 Name = "Authorization",
-                Description = "Ingrese el Token",
+                Description = "Ingrese la palabra 'Bearer' seguido su token. Ejemplo: Bearer ey30xmaMs...",
                 Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
             });
             o.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -80,7 +81,8 @@ public class Program
         })
        .AddEntityFrameworkStores<AuthenticateContext>()
        .AddDefaultTokenProviders();
-        /* Configuracion para levantar el token dado lo confiugrado en el appseting*/
+
+
         var jwtConfig = builder.Configuration.GetSection("Jwt");
         var keyText = jwtConfig["Key"] ?? throw new ArgumentNullException("Key is not configured in Jwt settings.");
         var key = Encoding.UTF8.GetBytes(keyText);
@@ -125,6 +127,41 @@ public class Program
                 var context = services.GetRequiredService<Dsw2025TpiContext>();
                 context.Database.Migrate();
                 context.Seedwork<Customer>("Sources/Customers.json");
+
+                var roleMaganer = services.GetRequiredService<RoleManager<IdentityRole>>();
+                string[] roles = new[] { "Admin", "User" };
+
+                foreach(var role in roles)
+                {
+                    var roleExist = await roleMaganer.RoleExistsAsync(role);
+                    if (!roleExist)
+                    {
+                        await roleMaganer.CreateAsync(new IdentityRole(role));
+                    }
+
+
+                }
+                var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+
+                var adminUserEmail = "admin@example.com";
+                var adminUser = await userManager.FindByEmailAsync(adminUserEmail);
+
+                if (adminUser == null)
+                {
+                    adminUser = new IdentityUser
+                    {
+                        UserName = "admin",
+                        Email = adminUserEmail,
+                        EmailConfirmed = true
+                    };
+                    var result = await userManager.CreateAsync(adminUser, "Admin123!");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(adminUser, "Admin");
+                    }
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -149,6 +186,6 @@ public class Program
         
         app.MapHealthChecks("/healthcheck");
 
-        app.Run();
+        await app.RunAsync();
     }
 }

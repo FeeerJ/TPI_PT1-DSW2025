@@ -12,10 +12,12 @@ namespace Dsw2025Tpi.Api.Controllers
     {
 
         private readonly JwtTokenService _jwtTokenService;
-        public AuthenticateController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, JwtTokenService jwtTokenService)
+        public AuthenticateController(JwtTokenService jwtTokenService)
         {
             _jwtTokenService = jwtTokenService;
         }
+
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
