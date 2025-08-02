@@ -73,3 +73,6 @@ En esta primera etapa el objetivo es construir el módulo de Órdenes, permitien
 | Método | Ruta           | Descripción                      |
 |--------|----------------|--------------------------------|
 | POST   | `/api/orders`  | Crea una nueva orden, validando stock |
+| GET    | `/api/orders`     | Obtiene todas las ordenes  |
+| GET    | `/api/orders/{id}`| Obtiene una orden por su ID    |
+| PUT    | `/api/order/{id}/status`| Actualiza el estado de una orden|
