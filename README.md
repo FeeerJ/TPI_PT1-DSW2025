@@ -56,4 +56,20 @@ En esta primera etapa el objetivo es construir el módulo de Órdenes, permitien
 
  
  
+# EndPoints Disponibles
 
+## Products
+
+| Método | Ruta               | Descripción                        |
+|--------|--------------------|----------------------------------|
+| GET    | `/api/products`     | Obtiene todos los productos disponibles |
+| GET    | `/api/products/{id}`| Obtiene un producto por su ID    |
+| POST   | `/api/products`     | Agrega un nuevo producto          |
+| PUT    | `/api/products/{id}`| Actualiza los datos de un producto|
+| PATCH  | `/api/products/{id}`| Desactiva un producto             |
+
+## Orders
+
+| Método | Ruta           | Descripción                      |
+|--------|----------------|--------------------------------|
+| POST   | `/api/orders`  | Crea una nueva orden, validando stock |
