@@ -19,6 +19,13 @@ En esta primera etapa el objetivo es construir el módulo de Órdenes, permitien
 - .NET 8 SDK
 - SQL Server/ localdB (Incluido en Visual Studio)
 - Visual Studio Community 2022 (+ASP.NET CORE)
+- Git
 
 ### Pasos a seguir
+1. Clonar el repositorio:
+   Tendras que usar la siguiente serie de comandos en tu terminal.
+2. Configurar la base de datos: 
+   Ten en cuenta que la cadena de conexion utilizada sea la correcta segun tu entorno preferido. La utilizada por defecto es (localdb)\\mssqllocaldb
+3. Aplicar las migraciones y poblar la base de datos:
+   Se espera la aplicacion automatica de las migraciones y la carga de los datos iniciales desde un archivo JSON al iniciar el programa.
 
